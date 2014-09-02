@@ -6,6 +6,8 @@
 #include <list>
 #include <iostream>
 
+const char[] config_name = "server.ini"
+
 int main()
 {
     std::list<int> threadpool;
