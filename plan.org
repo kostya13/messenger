@@ -1,0 +1,59 @@
+Классы:
+http://www.adp-gmbh.ch/win/misc/sockets.html
+
+bool readyToReceive(int sock, int interval = 1)
+{
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(sock, &fds);
+
+    timeval tv;
+    tv.tv_sec = interval;
+    tv.tv_usec = 0;
+
+    return (select(sock + 1, &fds, 0, 0, &tv) == 1);
+}
+
+#include <Windows.h>
+
+struct thread_data
+{
+ int m_id;
+ thread_data(int id) : m_id(id) {}
+};
+DWORD WINAPI thread_func(LPVOID lpParameter)
+{
+ thread_data *td = (thread_data*)lpParameter;
+ cout << "thread with id = " << td->m_id << endl;
+ return 0;
+}
+int main()
+{
+ for (int i=0; i< 10; i++)
+ {
+  CreateThread(NULL, 0, thread_func, new thread_data(i) , 0, 0);
+ }
+}
+http://msdn.microsoft.com/en-us/library/ms682516%28VS.85%29.aspx
+
+
+http://www.binarytides.com/udp-socket-programming-in-winsock/
+http://www.binarytides.com/winsock-socket-programming-tutorial/
+
+Потокобезопасная очередь
+
+Логгер в файл
+
+
+пул соединений
+  делаем многопоточный
+  каждый порт в своем потоке
+Протокол
+
+Считыватель конфига
+http://2lx.ru/2010/02/chtenie-i-zapis-ini-fajlov-v-visual-c/
+http://www.codeproject.com/Articles/20053/A-Complete-Win-INI-File-Utility-Class
+
+
+Using Mutex Objects
+http://msdn.microsoft.com/en-us/library/windows/desktop/ms686927%28v=vs.85%29.aspx
