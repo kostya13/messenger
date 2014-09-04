@@ -7,5 +7,5 @@
 
 namespace IniFile
 {
-  std:list<int> GetIntList(const std::string &filename, const std::string &section, const std::string &key);
+  std::list<int> GetIntList(const std::string &filename, const std::string &section, const std::string &key);
 }

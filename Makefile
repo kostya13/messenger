@@ -1,10 +1,9 @@
 CPP  = g++.exe
-OBJ  = server.o
-LINKOBJ = server.o
+OBJ  = server.o socket.o connection.o confreader.o
 BIN = server.exe
 
 $(BIN): $(OBJ)
-	$(CPP) $(LINKOBJ) -o server.exe
+	$(CPP) $(OBJ) -lws2_32  -o server.exe
 
-server.o: server.cpp
-	$(CPP) -c server.cpp -o server.o
+%.o: %.c
+	$(CPP)  $<

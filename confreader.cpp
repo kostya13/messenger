@@ -13,8 +13,11 @@ namespace
     const int buf_size = 512;
     char *IniRawRead(const char *filename, const char *section, const char *key)
     {
+        const int FileNotFound = 2;
         char *out = new char[buf_size];
-        GetPrivateProfileString(section, key, NULL, out, buf_size, filename);
+        int readed = GetPrivateProfileString(section, key, NULL, out, buf_size, filename);
+        if(GetLastError() == FileNotFound)
+            throw 1;
         return out;
     }
 
@@ -39,11 +42,11 @@ namespace
         return numb;
     }
     
-    std:list<int> StrToIntList(const char *section)
+    std::list<int> StrToIntList(const char *section)
     {
         std::list<std::string> strings = SplitString(section, ',');
         std::list<int> ints;
-        for std::list::const_iterator i = strings.begin(); i < strings.end(); i++)
+        for(std::list<std::string>::const_iterator i = strings.begin(); i != strings.end(); ++i)
         {
             ints.push_back(StrToInt(*i));
         }
@@ -53,11 +56,11 @@ namespace
 
 namespace IniFile
 {
-  std:list<int> GetIntList(const std::string &filename, const std::string &section, const std::string &key)
+    std::list<int> GetIntList(const std::string &filename, const std::string &section, const std::string &key)
   {
       char *raw_buffer = new char[buf_size];
       raw_buffer = IniRawRead(filename.c_str(), section.c_str(), key.c_str());
-      std:list<int> intlist = StrToIntList(raw_buffer);
+      std::list<int> intlist = StrToIntList(raw_buffer);
       return intlist;
   }
 }
