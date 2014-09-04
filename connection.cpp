@@ -20,10 +20,10 @@ namespace Server
             {
                 Socket* s=in.Accept();
                 std::string r = s->ReceiveLine();
-                std::cout << "Recived:" << r << std::endl;
-                if (r.empty()) continue;
+//                std::cout << "Recived:" << r << std::endl;
+//                if (r.empty()) continue;
                 params->logger->AddEntry(r);
-                s->SendLine(r);
+                s->SendLine("OK");
             }
         }
         return 0;
