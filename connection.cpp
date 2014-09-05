@@ -12,18 +12,19 @@ namespace Server
         ThreadData* params = (Server::ThreadData*)threadParams;
         std::cout << "Server listen on "<< params->proto << " " << params->port << std::endl;
 
-        SocketServer in(params->port, 5, NonBlockingSocket);
+        SocketServer in(params->port, params->proto);
         while(params->state->run)
         {
-            SocketSelect sel(&in, NULL, NonBlockingSocket);            
-            if (sel.Readable(&in))
+            SocketSelect sel(in.Get());            
+            if (sel.Readable(in.Get()))
             {
-                Socket* s=in.Accept();
-                std::string r = s->ReceiveLine();
+                Socket* s = in.Accept();
+                std::string r = s->Receive();
 //                std::cout << "Recived:" << r << std::endl;
 //                if (r.empty()) continue;
                 params->logger->AddEntry(r);
-                s->SendLine("OK");
+                s->Send("OK");
+                delete s;
             }
         }
         return 0;

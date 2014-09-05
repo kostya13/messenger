@@ -5,12 +5,12 @@ SERVERBIN = server.exe
 SERVEROBJ  = server.o socket.o connection.o confreader.o
 
 CLIENTCLIBIN = client_cli.exe
-CLIENTCLIOBJ  = client_cli.o socket.o
+CLIENTCLIOBJ  = client_cli.o socket.o request.o
 
 CLIENTGUIBIN = client_gui.exe
-CLIENTOBJGUI = client_gui.o gui.o socket.o
+CLIENTOBJGUI = client_gui.o gui.o socket.o request.o
 
-server: $(SERVERBIN)
+server: $(SERVEROBJ)
 	$(CPP) $(SERVEROBJ) -lws2_32  -o $(SERVERBIN)
 
 client: $(CLIENTCLIOBJ)

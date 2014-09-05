@@ -10,6 +10,7 @@
 
 #include "connection.h"
 #include "confreader.h"
+#include "netsetup.h"
 #include "server.h"
 
 const std::string config_name  = ".\\server.ini";
@@ -22,12 +23,13 @@ namespace
 {
     State state;
 
-BOOL WINAPI ConsoleHandler(DWORD CEvent)
-{
-    state.run = false;    
-    while(state.waitstop){};
-    return TRUE;
-}
+    BOOL WINAPI ConsoleHandler(DWORD CEvent)
+    {
+        state.run = false;    
+        while(state.waitstop){};
+        return TRUE;
+    }
+    
    class ConnectionsPool
    {
    public:
@@ -84,7 +86,6 @@ BOOL WINAPI ConsoleHandler(DWORD CEvent)
  
 }
     
-    
 int main()
 {
     if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE))
@@ -92,19 +93,25 @@ int main()
         std::cout<< "\nERROR: Could not set control handler" << std::endl; 
         return 1;
     }
-    Logger logger(logfile_name);
-    logger.AddEntry("start");
+
     try
     {
+        NetSetup network;
+        Logger logger(logfile_name);
+        logger.AddEntry("start");
         ConnectionsPool cp(&logger, &state);
         cp.CreateThreads();
         cp.Wait();
+        logger.AddEntry("finish");
+        state.waitstop = false;    
     }
-    catch(int e)
+    catch (const char* s) 
     {
-        std::cout << "Error:" << e << std::endl;
+        std::cout << "Error:" << s << std::endl;
     }
-    logger.AddEntry("finish");
-    state.waitstop = false;    
+    catch(...)
+    {
+        std::cout << "Unknown error" << std::endl;        
+    }
     return 0;
 }

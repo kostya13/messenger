@@ -11,13 +11,14 @@
 namespace
 {
     const int buf_size = 512;
+
     char *IniRawRead(const char *filename, const char *section, const char *key)
     {
         const int FileNotFound = 2;
         char *out = new char[buf_size];
         int readed = GetPrivateProfileString(section, key, NULL, out, buf_size, filename);
         if(GetLastError() == FileNotFound)
-            throw 1;
+            throw "Config file not found";
         return out;
     }
 
@@ -61,6 +62,7 @@ namespace IniFile
       char *raw_buffer = new char[buf_size];
       raw_buffer = IniRawRead(filename.c_str(), section.c_str(), key.c_str());
       std::list<int> intlist = StrToIntList(raw_buffer);
+      delete[] raw_buffer;
       return intlist;
   }
 }
