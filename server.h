@@ -7,8 +7,9 @@
 
 struct State
 {
-    State() : run(true){};
+    State() : run(true), waitstop(true){};
     bool run;
+    bool waitstop;
 };
 
 class FileWriter

@@ -18,17 +18,16 @@ const std::string config_section = "Ports";
 const std::string key_tcp = "TCP";
 const std::string key_udp = "UDP";
 
-
 namespace
 {
     State state;
 
-    BOOL WINAPI ConsoleHandler(DWORD)
-    {
-        state.run = false;
-        return TRUE;
-    }
-    
+BOOL WINAPI ConsoleHandler(DWORD CEvent)
+{
+    state.run = false;    
+    while(state.waitstop){};
+    return TRUE;
+}
    class ConnectionsPool
    {
    public:
@@ -60,7 +59,7 @@ namespace
                    NULL,                   /* default security attributes.   */
                    0,                      /* use default stack size.        */
                    Server::ConnectionThread,/* thread function name.          */
-                   (void*)(*i),               /* argument to thread function.   */
+                   (void*)(*i),             /* argument to thread function.   */
                    0,                      /* use default creation flags.    */
                    &ThreadID);     /* returns the thread identifier. */
                if( threads[c] == NULL )
@@ -75,6 +74,7 @@ namespace
        void Wait()
        {
            WaitForMultipleObjects(pool.size(), threads, TRUE, INFINITE);
+           std::cout << "Threads closed" << std::endl;    
        }
    
    private:
@@ -92,19 +92,19 @@ int main()
         std::cout<< "\nERROR: Could not set control handler" << std::endl; 
         return 1;
     }
-
     Logger logger(logfile_name);
     logger.AddEntry("start");
     try
     {
         ConnectionsPool cp(&logger, &state);
-        cp.CreateThreads();    
+        cp.CreateThreads();
         cp.Wait();
-        logger.AddEntry("finish");
     }
     catch(int e)
     {
         std::cout << "Error:" << e << std::endl;
     }
+    logger.AddEntry("finish");
+    state.waitstop = false;    
     return 0;
 }

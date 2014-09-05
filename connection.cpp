@@ -12,7 +12,7 @@ namespace Server
         ThreadData* params = (Server::ThreadData*)threadParams;
         std::cout << "Server listen on "<< params->proto << " " << params->port << std::endl;
 
-        SocketServer in(params->port, 5);
+        SocketServer in(params->port, 5, NonBlockingSocket);
         while(params->state->run)
         {
             SocketSelect sel(&in, NULL, NonBlockingSocket);            
