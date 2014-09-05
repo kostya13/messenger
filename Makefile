@@ -1,16 +1,28 @@
 CPP  = g++.exe
-OBJ  = server.o socket.o connection.o confreader.o
-BIN = server.exe
-BINCLIENT = client.exe
-OBJCLIENT  = client.o socket.o
+RC = windres
 
-server: $(OBJ)
-	$(CPP) $(OBJ) -lws2_32  -o $(BIN)
+SERVERBIN = server.exe
+SERVEROBJ  = server.o socket.o connection.o confreader.o
 
-client: $(OBJCLIENT)
-	$(CPP) $(OBJCLIENT) -lws2_32  -o $(BINCLIENT)
+CLIENTCLIBIN = client_cli.exe
+CLIENTCLIOBJ  = client_cli.o socket.o
 
-all: server client
+CLIENTGUIBIN = client_gui.exe
+CLIENTOBJGUI = client_gui.o gui.o socket.o
+
+server: $(SERVERBIN)
+	$(CPP) $(SERVEROBJ) -lws2_32  -o $(SERVERBIN)
+
+client: $(CLIENTCLIOBJ)
+	$(CPP) $(CLIENTCLIOBJ) -lws2_32  -o $(CLIENTCLIBIN)
+
+gui:  $(CLIENTOBJGUI)
+	$(CPP) $(CLIENTOBJGUI) -o $(CLIENTGUIBIN) -s -lws2_32 -lcomctl32 -Wl,--subsystem,windows
+
+gui.o: gui.rc resource.h
+	${RC} -I. -i $< -o $@
+
+all: server client gui
 
 %.o: %.c
 	$(CPP)  $<
