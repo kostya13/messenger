@@ -1,9 +1,10 @@
 /*
-  Message server 
+  Message server.
 
-  This is simple multi thread server
+  This is simple multi thread server.
  */
 #include "confreader.h"
+#include "helper.h"
 #include "logger.h"
 #include "netsetup.h"
 #include "server.h"
@@ -42,7 +43,10 @@ namespace
            std::list<int> tcp = IniFile::GetIntList(config_name, config_section, key_tcp);
            for(std::list<int>::const_iterator i = tcp.begin(); i != tcp.end(); ++i)
            {
-               pool.push_back(new Server::ThreadData(SOCK_STREAM, (*i), logger, state));
+               if(IsValidPortNumber((*i)))
+               {
+                   pool.push_back(new Server::ThreadData(SOCK_STREAM, (*i), logger, state));
+               }
            }
        }
        ~ConnectionsPool()

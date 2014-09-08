@@ -1,3 +1,6 @@
+/*
+  Prepare Windows network subsystem
+ */
 #pragma once
 
 #include <WinSock2.h>

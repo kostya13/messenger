@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     }
 
     string host = argv[1];
-    int port = CharToInt(argv[2]);
+    int port = CharsToInt(argv[2]);
     if(!IsValidPortNumber(port))
     {
         cout<<"Icorrect port number"<<endl;

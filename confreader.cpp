@@ -1,5 +1,5 @@
 /*
-  Implementation for config reader
+  Implementation for INI config reader 
 */
 #include "confreader.h"
 #include "helper.h"
@@ -29,11 +29,11 @@ namespace
         std::string::size_type prev_pos = 0, pos = 0;
         while((pos = s.find(seperator, pos)) != std::string::npos)
         {
-            std::string substring( s.substr(prev_pos, pos-prev_pos) );
+            std::string substring(s.substr(prev_pos, pos-prev_pos));
             output.push_back(substring);
             prev_pos = ++pos;
         }
-        output.push_back(s.substr(prev_pos, pos-prev_pos)); // Last word
+        output.push_back(s.substr(prev_pos, pos - prev_pos)); // Last word
         return output;
     }
 
@@ -43,7 +43,7 @@ namespace
         std::list<int> ints;
         for(std::list<std::string>::const_iterator i = strings.begin(); i != strings.end(); ++i)
         {
-            ints.push_back(CharToInt((*i).c_str()));
+            ints.push_back(CharsToInt((*i).c_str()));
         }
         return ints;
     }

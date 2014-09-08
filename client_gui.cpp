@@ -31,7 +31,7 @@ namespace
         string host(buf);
         GetDlgItemText(hWnd, IDPORT, buf, BUF_SIZE);
 
-        int port = CharToInt(buf);
+        int port = CharsToInt(buf);
         if(!IsValidPortNumber(port))
         {
             MessageBox(hWnd, "Icorrect port number", "Error", MB_OK);        

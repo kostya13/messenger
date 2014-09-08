@@ -10,7 +10,6 @@ namespace
     const int MAXCONN = 10;
 }   
  
-
 Socket:: Socket() : s_(0)
 {
 }
@@ -63,6 +62,7 @@ SocketTCP::SocketTCP(SOCKET s) : Socket(s)
 std::string SocketTCP::Receive()
 {
   std::string ret;
+  // max leight of client message is  BUF_SIZE
   static const int BUF_SIZE = 256;
   while (1)
   {
@@ -75,36 +75,34 @@ std::string SocketTCP::Receive()
       case -1:
           throw "Recv socket error";
     }
-    ret=r;
+    ret = r;
     return ret;
   }
 }
 
 void SocketTCP::Send(const std::string& s)
 {
-  send(s_,s.c_str(),s.length(),0);
+  send(s_, s.c_str(), s.length(), 0);
 }
 
 ServerTCP::ServerTCP(int port)
-    :  max_connections(MAXCONN)
+    : max_connections(MAXCONN)
 {
   sock = new SocketTCP();
   
   sockaddr_in sa;
-
   memset(&sa, 0, sizeof(sa));
 
   sa.sin_family = PF_INET;             
   sa.sin_port = htons(port);          
   
-// Set non blocking socket
+ // Set non blocking socket
     u_long arg = 1;
     ioctlsocket(sock->Get(), FIONBIO, &arg);
 
-  /* bind the socket to the internet address */
-    if (bind(sock->Get(), (sockaddr *)&sa, sizeof(sockaddr_in)) == SOCKET_ERROR)
+  if (bind(sock->Get(), (sockaddr *)&sa, sizeof(sockaddr_in)) == SOCKET_ERROR)
   {
-      closesocket(sock->Get());
+    closesocket(sock->Get());
     throw "INVALID_SOCKET";
   }
   
@@ -194,9 +192,9 @@ SocketSelect::SocketSelect(SOCKET s)
 
 bool SocketSelect::Readable(SOCKET s)
 {
-  if (FD_ISSET(s,&fds_))
+  if (FD_ISSET(s, &fds_))
   {
-      return true;
+    return true;
   }
   return false;
 }

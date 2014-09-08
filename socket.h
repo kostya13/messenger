@@ -1,9 +1,19 @@
+/*
+  Wrappers for system sockets
+  Interfaces for slient and server
+
+  Now implements ony TCP sockets and server and clients, wiwh uses this socket
+  Support for UDP sockets may be added with minimal effort.
+ */
+#include <memory>
+#include <string>
+#include <winsock2.h>
+
 #pragma once
 
-#include <WinSock2.h>
-#include <string>
-#include <memory>
-
+/*
+   Base Socket class
+ */
 class Socket
 {
 public:
@@ -15,8 +25,6 @@ public:
   SOCKET Get();
 
   virtual std::string Receive() = 0;
-  // The parameter of SendLine is not a const reference
-  // because SendLine modifes the std::string passed.
   virtual void  Send(const std::string& str) = 0;
     
 protected:
@@ -24,6 +32,9 @@ protected:
   SOCKET s_;
 };
 
+/*
+  Socket for TCP protocol 
+*/
 class SocketTCP : public Socket
 {
 public:
@@ -33,6 +44,9 @@ public:
     void Send(const std::string& str);
 };
 
+/*
+  Wrapper for system call select for non blocking sockets
+*/
 class SocketSelect
 {
   public:
@@ -42,6 +56,9 @@ class SocketSelect
     fd_set fds_;
 }; 
 
+/*
+  Base class for client and server
+ */
 class SocketIO
 {
 public:
@@ -53,6 +70,9 @@ protected:
     Socket* sock;
 };
 
+/*
+  Client for TCP socket
+ */
 class ClientTCP : public SocketIO
 {
 public:
@@ -62,6 +82,9 @@ public:
 };
 
 
+/*
+  Server for TCP socket
+*/
 class ServerTCP : public SocketIO
 {
 public:
@@ -75,5 +98,6 @@ private:
     int max_connections;
 };
 
+// Fabrics for create instance of server and client
 SocketIO* CreateServer(int proto, int port);
 SocketIO* CreateClient(int proto, const std::string& host, int port);
