@@ -1,25 +1,26 @@
 /*
-  Implementation if config reader
+  Implementation for config reader
 */
-#include <windows.h>
-#include <algorithm>
-#include <list>
-#include <iostream>
-#include <sstream>
 #include "confreader.h"
+#include "helper.h"
+
+#include <algorithm>
+#include <iostream>
+#include <windows.h>
+
 
 namespace
 {
-    const int buf_size = 512;
+    const int BUF_SIZE = 512;
 
-    char *IniRawRead(const char *filename, const char *section, const char *key)
+    void IniRawRead(const char *filename, const char *section, const char *key, char* buffer)
     {
         const int FileNotFound = 2;
-        char *out = new char[buf_size];
-        int readed = GetPrivateProfileString(section, key, NULL, out, buf_size, filename);
+        int readed = GetPrivateProfileString(section, key, NULL, buffer, BUF_SIZE, filename);
         if(GetLastError() == FileNotFound)
             throw "Config file not found";
-        return out;
+        if(readed < 1)
+           throw "No data to read";
     }
 
     std::list<std::string> SplitString(const std::string& s, char seperator)
@@ -36,20 +37,13 @@ namespace
         return output;
     }
 
-    int StrToInt(const std::string& str)
-    {
-        int numb;
-        std::istringstream(str) >> numb;
-        return numb;
-    }
-    
     std::list<int> StrToIntList(const char *section)
     {
         std::list<std::string> strings = SplitString(section, ',');
         std::list<int> ints;
         for(std::list<std::string>::const_iterator i = strings.begin(); i != strings.end(); ++i)
         {
-            ints.push_back(StrToInt(*i));
+            ints.push_back(CharToInt((*i).c_str()));
         }
         return ints;
     }
@@ -59,10 +53,9 @@ namespace IniFile
 {
     std::list<int> GetIntList(const std::string &filename, const std::string &section, const std::string &key)
   {
-      char *raw_buffer = new char[buf_size];
-      raw_buffer = IniRawRead(filename.c_str(), section.c_str(), key.c_str());
+      char raw_buffer[BUF_SIZE];
+      IniRawRead(filename.c_str(), section.c_str(), key.c_str(), raw_buffer);
       std::list<int> intlist = StrToIntList(raw_buffer);
-      delete[] raw_buffer;
       return intlist;
   }
 }

@@ -1,3 +1,6 @@
+/**
+   Simple command line client
+ */
 #include "helper.h"
 #include "netsetup.h"
 #include "request.h"
@@ -10,11 +13,10 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-
     if(argc<4)
     {
         cout<< "Too few parameters"<<endl;
-        cout<< "usage: client_cli host port message"<<endl;
+        cout<< "usage:\nclient_cli host port message"<<endl;
         return 1;
     }
 
@@ -25,10 +27,11 @@ int main(int argc, char *argv[])
         cout<<"Icorrect port number"<<endl;
         return 2;        
     }
+
     string message = argv[3];
 
-    cout<< host << " "<<port<<" "<<message<<endl;
     NetSetup network;
+    
     try
     {
         string result;

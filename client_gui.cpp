@@ -1,3 +1,6 @@
+/*
+  Simple client with GUI interface
+ */
 #include "helper.h"
 #include "netsetup.h"
 #include "request.h"
@@ -6,18 +9,17 @@
 #include <windows.h>
 #include <tchar.h>
 
-
 namespace
 {
-    static const int BUF_SIZE=256;    
-
+    static const int BUF_SIZE = 256;    
+    static const int TRY_COUNT = 5;
     void AddEntryToLog(HWND hWnd, const char* message)
     {
         HWND hList;        
         hList = GetDlgItem(hWnd, IDLOG);        
         LRESULT lResult = (int)SendMessage(hList, LB_ADDSTRING, BUF_SIZE, (LPARAM)message);
         if (lResult == LB_ERR || lResult == LB_ERRSPACE)
-            MessageBox(hWnd, "Ошибка при добавлении строки в список", "Ошибка", MB_OK);
+            MessageBox(hWnd, "Can't add message to log", "Error", MB_OK);
     }
 
     void SendMessageToServer(HWND hWnd)
@@ -29,7 +31,7 @@ namespace
         string host(buf);
         GetDlgItemText(hWnd, IDPORT, buf, BUF_SIZE);
 
-        int port  = CharToInt(buf);
+        int port = CharToInt(buf);
         if(!IsValidPortNumber(port))
         {
             MessageBox(hWnd, "Icorrect port number", "Error", MB_OK);        
@@ -39,19 +41,25 @@ namespace
         string message(buf);
 
         string result;
-        try
+        for(int i = 0; i < TRY_COUNT; ++i)
         {
-            result = Client::SendRequest(host, port, SOCK_STREAM, message);
-            AddEntryToLog(hWnd, Client::DescribeReply(result).c_str());
-        } 
-        catch (const char* s)
-        {
-            AddEntryToLog(hWnd, "Fail: server not respond");
-        } 
-        catch (...)
-        {
-            AddEntryToLog(hWnd, "Fail: unknown error");                
+            try
+            {
+                result = Client::SendRequest(host, port, SOCK_STREAM, message);
+                AddEntryToLog(hWnd, Client::DescribeReply(result).c_str());
+                return;
+            }
+            catch (const char* s)
+            {
+                Sleep(1000);
+                continue;
+            } 
+            catch (...)
+            {
+                AddEntryToLog(hWnd, "Fail: unknown error");                
+            }
         }
+        AddEntryToLog(hWnd, "Fail: server not respond");
     }
 }
 

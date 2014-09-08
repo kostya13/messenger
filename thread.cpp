@@ -18,6 +18,7 @@ namespace Server
         std::cout << "Server listen on " << params->port << std::endl;
 
         std::auto_ptr<SocketIO> server(CreateServer(params->proto, params->port));
+        //state changes, when program prepare to close
         while(params->state->run)
         {
             std::string recieve = server->Receive();
@@ -27,7 +28,6 @@ namespace Server
                 server->Send(Confirm);
             }
         }
-//        delete server;
         return 0;
     }
 }
