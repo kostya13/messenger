@@ -8,7 +8,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "connection.h"
+#include "thread.h"
 #include "confreader.h"
 #include "netsetup.h"
 #include "server.h"
@@ -76,7 +76,7 @@ namespace
        void Wait()
        {
            WaitForMultipleObjects(pool.size(), threads, TRUE, INFINITE);
-           std::cout << "Threads closed" << std::endl;    
+           std::cout << "All threads closed" << std::endl;    
        }
    
    private:
@@ -98,11 +98,11 @@ int main()
     {
         NetSetup network;
         Logger logger(logfile_name);
-        logger.AddEntry("start");
+        logger.AddEntry("Server started");
         ConnectionsPool cp(&logger, &state);
         cp.CreateThreads();
         cp.Wait();
-        logger.AddEntry("finish");
+        logger.AddEntry("Server finished");
         state.waitstop = false;    
     }
     catch (const char* s) 

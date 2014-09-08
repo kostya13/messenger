@@ -2,7 +2,7 @@ CPP  = g++.exe
 RC = windres
 
 SERVERBIN = server.exe
-SERVEROBJ  = server.o socket.o connection.o confreader.o
+SERVEROBJ  = server.o socket.o thread.o confreader.o
 
 CLIENTCLIBIN = client_cli.exe
 CLIENTCLIOBJ  = client_cli.o socket.o request.o

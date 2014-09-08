@@ -6,32 +6,16 @@ using namespace std;
 namespace
 {
     const int MAXCONN = 10;
-    
-    Socket* CreateSocket(int proto)
-    {
-        switch(proto)
-        { 
-        case SOCK_STREAM:
-            return new SocketTCP();
-            break;
-        case SOCK_DGRAM:
-            throw "Unimplemented UDP socket type";
-            break;
-//        return new SocketUDP(host, port);        
-        default:
-            throw "Unknown socket type";
-        }
-    }
-}
+}   
+ 
 
-Socket::Socket() : s_(0)
+Socket:: Socket() : s_(0)
 {
-};
-
+}
 
 Socket::Socket(SOCKET s) : s_(s)
 {
-};
+}
 
 Socket::~Socket()
 {
@@ -49,16 +33,16 @@ Socket& Socket::operator=(Socket& o)
   return *this;
 }
 
+Socket& Socket::operator=(SOCKET s)
+{
+  s_ = s;
+  return *this;
+}
+
 SOCKET Socket::Get()
 {
     return s_;
 }
-
-void Socket::Set(SOCKET s)
-{
-    s_ = s;
-}
-
 
 SocketTCP::SocketTCP()
 {
@@ -68,6 +52,11 @@ SocketTCP::SocketTCP()
     throw "INVALID_SOCKET";
   }
 }
+
+SocketTCP::SocketTCP(SOCKET s) : Socket(s)
+{
+};
+
 
 std::string SocketTCP::Receive()
 {
@@ -93,11 +82,11 @@ void SocketTCP::Send(std::string s)
   send(s_,s.c_str(),s.length(),0);
 }
 
-SocketServer::SocketServer(int port, int proto)
-    : socket(CreateSocket(proto))
-    , protocol(proto)
-    , max_connections(MAXCONN)
+ServerTCP::ServerTCP(int port)
+    :  max_connections(MAXCONN)
 {
+  sock = new SocketTCP();
+  
   sockaddr_in sa;
 
   memset(&sa, 0, sizeof(sa));
@@ -107,47 +96,49 @@ SocketServer::SocketServer(int port, int proto)
   
 // Set non blocking socket
     u_long arg = 1;
-    ioctlsocket(socket->Get(), FIONBIO, &arg);
+    ioctlsocket(sock->Get(), FIONBIO, &arg);
 
   /* bind the socket to the internet address */
-    if (bind(socket->Get(), (sockaddr *)&sa, sizeof(sockaddr_in)) == SOCKET_ERROR)
+    if (bind(sock->Get(), (sockaddr *)&sa, sizeof(sockaddr_in)) == SOCKET_ERROR)
   {
-      closesocket(socket->Get());
+      closesocket(sock->Get());
     throw "INVALID_SOCKET";
   }
   
-  listen(socket->Get(), max_connections);                               
+  listen(sock->Get(), max_connections);                               
 }
 
-Socket* SocketServer::Accept()
+SOCKET ServerTCP::Accept()
 {
-  SOCKET new_sock = accept(socket->Get(), 0, 0);
+  SOCKET new_sock = accept(sock->Get(), 0, 0);
   if (new_sock == INVALID_SOCKET)
   {
-    int rc = WSAGetLastError();
-    if(rc==WSAEWOULDBLOCK)
-    {
-      return 0; // non-blocking call, no request pending
-    }
-    else
-    {
-      throw "Invalid Socket";
-    }
+      throw "Invalid socket in accept";
   }
-
-  Socket* r = CreateSocket(protocol);
-  r->Set(new_sock);
-  return r;
+  return new_sock;
 }
 
-SOCKET SocketServer::Get()
+std::string ServerTCP::Receive()
 {
-    return socket->Get();
+    string data;
+    SocketSelect sel(sock->Get());            
+    if (sel.Readable(sock->Get()))
+    {
+        accept_socket = new SocketTCP(Accept());
+        data = accept_socket->Receive();
+    }
+    return data;
 }
 
-SocketClient::SocketClient(const std::string& host, int port, int proto)
-    : socket(CreateSocket(proto))
+void ServerTCP::Send(std::string str)
 {
+    accept_socket->Send(str);
+    delete accept_socket;
+}
+
+ClientTCP::ClientTCP(const std::string& host, int port)
+{
+  sock = new SocketTCP();    
   std::string error;
 
   hostent *he;
@@ -163,21 +154,21 @@ SocketClient::SocketClient(const std::string& host, int port, int proto)
   addr.sin_addr = *((in_addr *)he->h_addr);
   memset(&(addr.sin_zero), 0, 8); 
 
-  if (::connect(socket->Get(), (sockaddr *) &addr, sizeof(sockaddr)))
+  if (::connect(sock->Get(), (sockaddr *) &addr, sizeof(sockaddr)))
   {
     error = strerror(WSAGetLastError());
     throw error.c_str();
   }
 }
 
-std::string SocketClient::Receive()
+std::string ClientTCP::Receive()
 {
-    return socket->Receive();
+    return sock->Receive();
 }
 
-void SocketClient::Send(std::string str)
+void ClientTCP::Send(std::string str)
 {
-    socket->Send(str);
+    sock->Send(str);
 }
 
 
@@ -206,4 +197,29 @@ bool SocketSelect::Readable(SOCKET s)
       return true;
   }
   return false;
+}
+
+
+SocketIO* CreateServer(int proto, int port)
+{
+    switch(proto)
+    { 
+    case SOCK_STREAM:
+        return new ServerTCP(port);
+        break;
+    default:
+        throw "Unknown server type";
+    }
+}
+
+SocketIO* CreateClient(int proto, const std::string& host, int port)
+{
+    switch(proto)
+    { 
+    case SOCK_STREAM:
+        return new ClientTCP(host, port);
+        break;
+    default:
+        throw "Unknown client type";
+    }
 }
