@@ -1,4 +1,6 @@
-#include "Socket.h"
+#include "common.h"
+#include "socket.h"
+
 #include <iostream>
 
 using namespace std;
@@ -61,24 +63,25 @@ SocketTCP::SocketTCP(SOCKET s) : Socket(s)
 std::string SocketTCP::Receive()
 {
   std::string ret;
+  static const int BUF_SIZE = 256;
   while (1)
   {
-    char r;
-    switch(recv(s_, &r, 1, 0))
+    char r[BUF_SIZE];
+    memset(r, 0, BUF_SIZE);        
+    switch(recv(s_, r, BUF_SIZE, 0))
     {
       case 0:
-        return ret;
+          return ret;
       case -1:
-        return "";
+          throw "Recv socket error";
     }
-    ret += r;
-    if (r == '\n')  return ret;
+    ret=r;
+    return ret;
   }
 }
 
-void SocketTCP::Send(std::string s)
+void SocketTCP::Send(const std::string& s)
 {
-  s += '\n';
   send(s_,s.c_str(),s.length(),0);
 }
 
@@ -130,7 +133,7 @@ std::string ServerTCP::Receive()
     return data;
 }
 
-void ServerTCP::Send(std::string str)
+void ServerTCP::Send(const std::string& str)
 {
     accept_socket->Send(str);
     delete accept_socket;
@@ -138,7 +141,8 @@ void ServerTCP::Send(std::string str)
 
 ClientTCP::ClientTCP(const std::string& host, int port)
 {
-  sock = new SocketTCP();    
+  sock = new SocketTCP();
+  
   std::string error;
 
   hostent *he;
@@ -147,13 +151,11 @@ ClientTCP::ClientTCP(const std::string& host, int port)
     error = strerror(errno);
     throw error.c_str();
   }
-
   sockaddr_in addr;
   addr.sin_family = AF_INET;
   addr.sin_port = htons(port);
   addr.sin_addr = *((in_addr *)he->h_addr);
   memset(&(addr.sin_zero), 0, 8); 
-
   if (::connect(sock->Get(), (sockaddr *) &addr, sizeof(sockaddr)))
   {
     error = strerror(WSAGetLastError());
@@ -166,7 +168,7 @@ std::string ClientTCP::Receive()
     return sock->Receive();
 }
 
-void ClientTCP::Send(std::string str)
+void ClientTCP::Send(const std::string& str)
 {
     sock->Send(str);
 }

@@ -1,6 +1,60 @@
+#include "helper.h"
+#include "netsetup.h"
+#include "request.h"
+#include "resource.h"
+
 #include <windows.h>
 #include <tchar.h>
-#include "resource.h"
+
+
+namespace
+{
+    static const int BUF_SIZE=256;    
+
+    void AddEntryToLog(HWND hWnd, const char* message)
+    {
+        HWND hList;        
+        hList = GetDlgItem(hWnd, IDLOG);        
+        LRESULT lResult = (int)SendMessage(hList, LB_ADDSTRING, BUF_SIZE, (LPARAM)message);
+        if (lResult == LB_ERR || lResult == LB_ERRSPACE)
+            MessageBox(hWnd, "Ошибка при добавлении строки в список", "Ошибка", MB_OK);
+    }
+
+    void SendMessageToServer(HWND hWnd)
+    {
+        using namespace std;        
+        char buf[BUF_SIZE];
+            
+        GetDlgItemText(hWnd, IDHOST, buf, BUF_SIZE);
+        string host(buf);
+        GetDlgItemText(hWnd, IDPORT, buf, BUF_SIZE);
+
+        int port  = CharToInt(buf);
+        if(!IsValidPortNumber(port))
+        {
+            MessageBox(hWnd, "Icorrect port number", "Error", MB_OK);        
+            return;
+        }
+        GetDlgItemText(hWnd, IDMESSAGE, buf, BUF_SIZE);
+        string message(buf);
+
+        string result;
+        try
+        {
+            result = Client::SendRequest(host, port, SOCK_STREAM, message);
+            AddEntryToLog(hWnd, Client::DescribeReply(result).c_str());
+        } 
+        catch (const char* s)
+        {
+            AddEntryToLog(hWnd, "Fail: server not respond");
+        } 
+        catch (...)
+        {
+            AddEntryToLog(hWnd, "Fail: unknown error");                
+        }
+    }
+}
+
 
 INT_PTR CALLBACK DialogProc(HWND hwndDlg,
                             UINT uMsg,
@@ -14,6 +68,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance,
                      LPTSTR lpCmdLine,
                      int nCmdShow)
 {
+    NetSetup network;    
     DialogBoxParam(hInstance, DlgName, NULL, DialogProc, (LPARAM) NULL);
     return TRUE;
 }
@@ -23,36 +78,19 @@ INT_PTR CALLBACK DialogProc(HWND hWnd,
                             WPARAM wParam,
                             LPARAM lParam)
 {
-
-    static HWND hHost;
-    static HWND hPort;
-    static HWND hProto;
-    static HWND hMessage;
-    static HWND hList;
-    
-    
     switch(uMsg)
     {
     case WM_INITDIALOG:
-//        hEdit = GetDlgItem(hWnd, IDC_EDIT1);
-        hList = GetDlgItem(hWnd, IDLOG);
-        SendMessage(GetDlgItem(hWnd, IDTCP), BM_SETCHECK, BST_CHECKED, 0);        
+         SetDlgItemText(hWnd, IDHOST, "localhost");
+         SetDlgItemText(hWnd, IDPORT, "4242");
+         SetDlgItemText(hWnd, IDMESSAGE, "Hello, server!");                  
         break;
         
     case WM_COMMAND:        
         if (LOWORD(wParam) == IDSEND)
         {
-            //           MessageBox(NULL,
-            //"Message send","Message send",MB_OK);
-
-//            SetDlgItemText(hWnd, IDC_EDIT1, TestString);
-//            char buf[256];
-            LRESULT lResult = (int)SendMessage(hList, LB_ADDSTRING, 256, (LPARAM)"buf");
-            if (lResult == LB_ERR || lResult == LB_ERRSPACE)
-                MessageBox(hWnd, "Ошибка при добавлении строки в список", "Ошибка", MB_OK);
-            if(IsDlgButtonChecked(hWnd, IDTCP))
-                MessageBox(hWnd, "TCP", "TCP", MB_OK);                
-        }
+            SendMessageToServer(hWnd);
+         }
         break;        
     case WM_CLOSE:
         EndDialog(hWnd, 0);

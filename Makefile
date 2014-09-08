@@ -1,14 +1,17 @@
+#Make file to bild all programs
 CPP  = g++.exe
 RC = windres
 
 SERVERBIN = server.exe
-SERVEROBJ  = server.o socket.o thread.o confreader.o
+SERVEROBJ  = server.o socket.o thread.o confreader.o logger.o
 
 CLIENTCLIBIN = client_cli.exe
 CLIENTCLIOBJ  = client_cli.o socket.o request.o
 
 CLIENTGUIBIN = client_gui.exe
 CLIENTOBJGUI = client_gui.o gui.o socket.o request.o
+
+all: server client gui
 
 server: $(SERVEROBJ)
 	$(CPP) $(SERVEROBJ) -lws2_32  -o $(SERVERBIN)
@@ -21,8 +24,6 @@ gui:  $(CLIENTOBJGUI)
 
 gui.o: gui.rc resource.h
 	${RC} -I. -i $< -o $@
-
-all: server client gui
 
 %.o: %.c
 	$(CPP)  $<

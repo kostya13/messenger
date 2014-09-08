@@ -17,7 +17,7 @@ public:
   virtual std::string Receive() = 0;
   // The parameter of SendLine is not a const reference
   // because SendLine modifes the std::string passed.
-  virtual void  Send(std::string) = 0;
+  virtual void  Send(const std::string& str) = 0;
     
 protected:
   Socket();
@@ -30,7 +30,7 @@ public:
     SocketTCP();
     SocketTCP(SOCKET s);    
     std::string Receive();
-    void Send(std::string);
+    void Send(const std::string& str);
 };
 
 class SocketSelect
@@ -46,7 +46,7 @@ class SocketIO
 {
 public:
     virtual std::string Receive() = 0;
-    virtual void  Send(std::string) = 0;
+    virtual void  Send(const std::string& str) = 0;
     virtual ~SocketIO(){delete sock;}
 
 protected:
@@ -58,7 +58,7 @@ class ClientTCP : public SocketIO
 public:
     ClientTCP(const std::string& host, int port);
     std::string Receive();
-    void Send(std::string);
+    void Send(const std::string& str);
 };
 
 
@@ -67,7 +67,7 @@ class ServerTCP : public SocketIO
 public:
   ServerTCP(int port);
   std::string Receive();
-  void Send(std::string);
+  void Send(const std::string& str);
    
 private:
     SOCKET Accept();
