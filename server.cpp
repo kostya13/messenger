@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <list>
+#include <map>
 #include <windows.h>
 
 namespace
@@ -19,7 +20,6 @@ namespace
     static const std::string config_name  = ".\\server.ini";
     static const std::string logfile_name = "server.log";
     static const std::string config_section = "Ports";
-    static const std::string key_tcp = "TCP";
     
     State state;
 
@@ -40,12 +40,25 @@ namespace
    public:
        ConnectionsPool(Server::Logger* logger, State* state)
        {
-           std::list<int> tcp = IniFile::GetIntList(config_name, config_section, key_tcp);
-           for(std::list<int>::const_iterator i = tcp.begin(); i != tcp.end(); ++i)
+           typedef std::map<int,std::string> protocol_map;
+           protocol_map protocols;
+           protocols[SOCK_STREAM]=key_tcp;
+           protocols[SOCK_DGRAM]=key_udp;
+
+           for(protocol_map::const_iterator it = protocols.begin(), endit = protocols.end(); it != endit; ++it)
            {
-               if(IsValidPortNumber((*i)))
+               int proto = it->first;
+               std::string key = it->second;
+               
+               std::list<int> values = IniFile::GetIntList(config_name, config_section, key);
+               for(std::list<int>::const_iterator i = values.begin(), endi = values.end(); i != endi; ++i)
                {
-                   pool.push_back(new Server::ThreadData(SOCK_STREAM, (*i), logger, state));
+                   
+                   if(IsValidPortNumber((*i)))
+                   {
+                       std::cout<<"->"<<proto<<" "<<(*i)<<std::endl;
+                       pool.push_back(new Server::ThreadData(proto, (*i), logger, state));
+                   }
                }
            }
        }

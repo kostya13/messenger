@@ -40,12 +40,18 @@ namespace
         GetDlgItemText(hWnd, IDMESSAGE, buf, BUF_SIZE);
         string message(buf);
 
+        int protocol;
+        if(IsDlgButtonChecked(hWnd, IDTCP))
+            protocol = SOCK_STREAM;
+        else
+            protocol = SOCK_DGRAM;
+        
         string result;
         for(int i = 0; i < TRY_COUNT; ++i)
         {
             try
             {
-                result = Client::SendRequest(host, port, SOCK_STREAM, message);
+                result = Client::SendRequest(host, port, protocol, message);
                 AddEntryToLog(hWnd, Client::DescribeReply(result).c_str());
                 return;
             }
@@ -91,7 +97,8 @@ INT_PTR CALLBACK DialogProc(HWND hWnd,
     case WM_INITDIALOG:
          SetDlgItemText(hWnd, IDHOST, "localhost");
          SetDlgItemText(hWnd, IDPORT, "4242");
-         SetDlgItemText(hWnd, IDMESSAGE, "Hello, server!");                  
+         SetDlgItemText(hWnd, IDMESSAGE, "Hello, server!");
+         SendMessage(GetDlgItem(hWnd, IDTCP), BM_SETCHECK, BST_CHECKED, 0);
         break;
         
     case WM_COMMAND:        

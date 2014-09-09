@@ -11,12 +11,33 @@
 
 using namespace std;
 
+namespace
+{
+    static const int UNKNOWN = -1;
+    int GetProtocol(const string& str)
+    {
+        if(str == "tcp")
+        {
+            return SOCK_STREAM;
+        }
+        else if (str == "udp")
+        {
+            return SOCK_DGRAM;
+        }
+        else
+        {
+            return UNKNOWN;
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
-    if(argc<4)
+    if(argc<5)
     {
         cout<< "Too few parameters"<<endl;
-        cout<< "usage:\nclient_cli host port message"<<endl;
+        cout<< "usage:\nclient_cli host port protocol message"<<endl;
+        cout<< "protocol is: tcp|udp"<<endl;
         return 1;
     }
 
@@ -28,14 +49,21 @@ int main(int argc, char *argv[])
         return 2;        
     }
 
-    string message = argv[3];
+    int protocol = GetProtocol(argv[3]);
+    if(protocol == UNKNOWN)
+    {
+        cout<<"Unknown protocol."<<endl;
+        return 3;
+    }
+    
+    string message = argv[4];
 
     NetSetup network;
     
     try
     {
         string result;
-        result = Client::SendRequest(host, port, SOCK_STREAM, message);
+        result = Client::SendRequest(host, port, protocol, message);
         cout << Client::DescribeReply(result) << endl;
     } 
     catch (const char* s)

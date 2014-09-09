@@ -14,3 +14,6 @@ struct State
     bool waitstop; // flag inidicate: whaiting all threads, while they closing
 };
 
+static const std::string key_tcp = "TCP";
+static const std::string key_udp = "UDP";    
+

@@ -6,5 +6,7 @@
 #define IDHOST                                  40000
 #define IDSEND                                  40001
 #define IDPORT                                  40002
+#define IDTCP                                   40003
+#define IDUDP                                   40004
 #define IDMESSAGE                               40005
 #define IDLOG                                   40006

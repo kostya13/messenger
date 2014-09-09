@@ -30,6 +30,7 @@ public:
 protected:
   Socket();
   SOCKET s_;
+  static const int BUF_SIZE = 256;    
 };
 
 /*
@@ -45,6 +46,21 @@ public:
 };
 
 /*
+  Socket for UDP protocol 
+*/
+class SocketUDP : public Socket
+{
+public:
+    SocketUDP();
+    SocketUDP(sockaddr_in addr);    
+    std::string Receive();
+    void Send(const std::string& str);
+private:
+    static const int slen = sizeof(sockaddr_in);
+    sockaddr_in si_other;
+};
+
+/*
   Wrapper for system call select for non blocking sockets
 */
 class SocketSelect
@@ -56,48 +72,3 @@ class SocketSelect
     fd_set fds_;
 }; 
 
-/*
-  Base class for client and server
- */
-class SocketIO
-{
-public:
-    virtual std::string Receive() = 0;
-    virtual void  Send(const std::string& str) = 0;
-    virtual ~SocketIO(){delete sock;}
-
-protected:
-    Socket* sock;
-};
-
-/*
-  Client for TCP socket
- */
-class ClientTCP : public SocketIO
-{
-public:
-    ClientTCP(const std::string& host, int port);
-    std::string Receive();
-    void Send(const std::string& str);
-};
-
-
-/*
-  Server for TCP socket
-*/
-class ServerTCP : public SocketIO
-{
-public:
-  ServerTCP(int port);
-  std::string Receive();
-  void Send(const std::string& str);
-   
-private:
-    SOCKET Accept();
-    Socket* accept_socket;
-    int max_connections;
-};
-
-// Fabrics for create instance of server and client
-SocketIO* CreateServer(int proto, int port);
-SocketIO* CreateClient(int proto, const std::string& host, int port);

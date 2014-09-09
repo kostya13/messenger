@@ -4,11 +4,6 @@
 #include <iostream>
 
 using namespace std;
-
-namespace
-{
-    const int MAXCONN = 10;
-}   
  
 Socket:: Socket() : s_(0)
 {
@@ -61,114 +56,68 @@ SocketTCP::SocketTCP(SOCKET s) : Socket(s)
 
 std::string SocketTCP::Receive()
 {
-  std::string ret;
-  // max leight of client message is  BUF_SIZE
-  static const int BUF_SIZE = 256;
-  while (1)
-  {
+    // max leight of client message is  BUF_SIZE
     char r[BUF_SIZE];
     memset(r, 0, BUF_SIZE);        
     switch(recv(s_, r, BUF_SIZE, 0))
     {
-      case 0:
-          return ret;
-      case -1:
-          throw "Recv socket error";
+    case 0:
+        return std::string();
+    case SOCKET_ERROR:
+        throw "Recv socket error";
     }
-    ret = r;
+    std::string ret(r);    
     return ret;
-  }
 }
 
 void SocketTCP::Send(const std::string& s)
 {
-  send(s_, s.c_str(), s.length(), 0);
+    
+    if(send(s_, s.c_str(), s.length(), 0) == SOCKET_ERROR)
+        throw  "send() failed";
 }
 
-ServerTCP::ServerTCP(int port)
-    : max_connections(MAXCONN)
+SocketUDP::SocketUDP()
 {
-  sock = new SocketTCP();
-  
-  sockaddr_in sa;
-  memset(&sa, 0, sizeof(sa));
-
-  sa.sin_family = PF_INET;             
-  sa.sin_port = htons(port);          
-  
- // Set non blocking socket
-    u_long arg = 1;
-    ioctlsocket(sock->Get(), FIONBIO, &arg);
-
-  if (bind(sock->Get(), (sockaddr *)&sa, sizeof(sockaddr_in)) == SOCKET_ERROR)
+  s_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  if (s_ == INVALID_SOCKET)
   {
-    closesocket(sock->Get());
     throw "INVALID_SOCKET";
   }
-  
-  listen(sock->Get(), max_connections);                               
 }
 
-SOCKET ServerTCP::Accept()
+SocketUDP::SocketUDP(sockaddr_in addr) : si_other(addr)
 {
-  SOCKET new_sock = accept(sock->Get(), 0, 0);
-  if (new_sock == INVALID_SOCKET)
+  s_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  if (s_ == INVALID_SOCKET)
   {
-      throw "Invalid socket in accept";
+    throw "INVALID_SOCKET";
   }
-  return new_sock;
-}
+};
 
-std::string ServerTCP::Receive()
+std::string SocketUDP::Receive()
 {
-    string data;
-    SocketSelect sel(sock->Get());            
-    if (sel.Readable(sock->Get()))
+    char r[BUF_SIZE];
+    memset(r, 0, BUF_SIZE);
+    int slen_local = slen;
+    switch(recvfrom(s_, r, BUF_SIZE, 0, (struct sockaddr *) &si_other, &slen_local))
     {
-        accept_socket = new SocketTCP(Accept());
-        data = accept_socket->Receive();
+    case 0:
+        return std::string();
+    case SOCKET_ERROR:
+        throw "Recv socket error";
     }
-    return data;
+    std::string ret(r);    
+    return ret;
 }
 
-void ServerTCP::Send(const std::string& str)
+void SocketUDP::Send(const std::string& s)
 {
-    accept_socket->Send(str);
-    delete accept_socket;
-}
+    if (sendto(s_, s.c_str(), s.size() , 0 , (struct sockaddr *) &si_other, slen) == SOCKET_ERROR)
+    {
+        throw  "sendto() failed";
+    }
 
-ClientTCP::ClientTCP(const std::string& host, int port)
-{
-  sock = new SocketTCP();
-  
-  std::string error;
-
-  hostent *he;
-  if ((he = gethostbyname(host.c_str())) == 0)
-  {
-    error = strerror(errno);
-    throw error.c_str();
-  }
-  sockaddr_in addr;
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(port);
-  addr.sin_addr = *((in_addr *)he->h_addr);
-  memset(&(addr.sin_zero), 0, 8); 
-  if (::connect(sock->Get(), (sockaddr *) &addr, sizeof(sockaddr)))
-  {
-    error = strerror(WSAGetLastError());
-    throw error.c_str();
-  }
-}
-
-std::string ClientTCP::Receive()
-{
-    return sock->Receive();
-}
-
-void ClientTCP::Send(const std::string& str)
-{
-    sock->Send(str);
 }
 
 
@@ -197,29 +146,4 @@ bool SocketSelect::Readable(SOCKET s)
     return true;
   }
   return false;
-}
-
-
-SocketIO* CreateServer(int proto, int port)
-{
-    switch(proto)
-    { 
-    case SOCK_STREAM:
-        return new ServerTCP(port);
-        break;
-    default:
-        throw "Unknown server type";
-    }
-}
-
-SocketIO* CreateClient(int proto, const std::string& host, int port)
-{
-    switch(proto)
-    { 
-    case SOCK_STREAM:
-        return new ClientTCP(host, port);
-        break;
-    default:
-        throw "Unknown client type";
-    }
 }

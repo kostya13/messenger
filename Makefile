@@ -3,18 +3,18 @@ CPP  = g++.exe
 RC = windres
 
 SERVERBIN = server.exe
-SERVEROBJ  = server.o socket.o thread.o confreader.o logger.o
+SERVEROBJ  = server.o socket.o thread.o confreader.o logger.o services.o
 
 CLIENTCLIBIN = client_cli.exe
-CLIENTCLIOBJ  = client_cli.o socket.o request.o
+CLIENTCLIOBJ  = client_cli.o socket.o request.o services.o
 
 CLIENTGUIBIN = client_gui.exe
-CLIENTOBJGUI = client_gui.o gui.o socket.o request.o
+CLIENTOBJGUI = client_gui.o gui.o socket.o request.o services.o
 
 all: server client gui
 
 server: $(SERVEROBJ)
-	$(CPP) $(SERVEROBJ) -lws2_32  -o $(SERVERBIN)
+	$(CPP) -g  $(SERVEROBJ) -lws2_32  -o $(SERVERBIN)
 
 client: $(CLIENTCLIOBJ)
 	$(CPP) $(CLIENTCLIOBJ) -lws2_32  -o $(CLIENTCLIBIN)
@@ -25,5 +25,5 @@ gui:  $(CLIENTOBJGUI)
 gui.o: gui.rc resource.h
 	${RC} -I. -i $< -o $@
 
-%.o: %.c
-	$(CPP)  $<
+%.o: %.cpp
+	$(CPP) -c -g  $<
