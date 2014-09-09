@@ -14,7 +14,7 @@ CLIENTOBJGUI = client_gui.o gui.o socket.o request.o services.o
 all: server client gui
 
 server: $(SERVEROBJ)
-	$(CPP) -g  $(SERVEROBJ) -lws2_32  -o $(SERVERBIN)
+	$(CPP) $(SERVEROBJ) -lws2_32  -o $(SERVERBIN)
 
 client: $(CLIENTCLIOBJ)
 	$(CPP) $(CLIENTCLIOBJ) -lws2_32  -o $(CLIENTCLIBIN)
@@ -26,4 +26,4 @@ gui.o: gui.rc resource.h
 	${RC} -I. -i $< -o $@
 
 %.o: %.cpp
-	$(CPP) -c -g  $<
+	$(CPP) -c $<

@@ -10,6 +10,7 @@
 #include "server.h"
 #include "thread.h"
 
+#include <algorithm>
 #include <iostream>
 #include <list>
 #include <map>
@@ -49,15 +50,19 @@ namespace
            {
                int proto = it->first;
                std::string key = it->second;
-               
+               std::list<int> added_ports;
                std::list<int> values = IniFile::GetIntList(config_name, config_section, key);
                for(std::list<int>::const_iterator i = values.begin(), endi = values.end(); i != endi; ++i)
                {
-                   
                    if(IsValidPortNumber((*i)))
                    {
-                       std::cout<<"->"<<proto<<" "<<(*i)<<std::endl;
-                       pool.push_back(new Server::ThreadData(proto, (*i), logger, state));
+                       std::list<int>::iterator findIter = std::find(added_ports.begin(), added_ports.end(), (*i));
+                       if(findIter == added_ports.end())
+                       {
+                           std::cout<<"->"<<proto<<" "<<(*i)<<std::endl;
+                           pool.push_back(new Server::ThreadData(proto, (*i), logger, state));
+                           added_ports.push_back((*i));
+                       }
                    }
                }
            }

@@ -5,9 +5,7 @@ General information
 This system consists of two components: server and client.
 The server can listen on multiple ports.
 
-Currently implemented only support TCP, but the application architecture
-designed so that you can add other protocols with minimum effort.
-Addinig UDP requires only adding a few classes to support the protocol.
+Currently implemented only support TCP and UDP protocols.
 
 The server setup is done via a configuration file in ini format for Windows.
 An example file is included with the server.
