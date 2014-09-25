@@ -59,7 +59,6 @@ namespace
                        std::list<int>::iterator findIter = std::find(added_ports.begin(), added_ports.end(), (*i));
                        if(findIter == added_ports.end())
                        {
-                           std::cout<<"->"<<proto<<" "<<(*i)<<std::endl;
                            pool.push_back(new Server::ThreadData(proto, (*i), logger, state));
                            added_ports.push_back((*i));
                        }

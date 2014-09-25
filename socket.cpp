@@ -4,7 +4,8 @@
 #include <iostream>
 
 using namespace std;
- 
+
+
 Socket:: Socket() : s_(0)
 {
 }
@@ -59,12 +60,15 @@ std::string SocketTCP::Receive()
     // max leight of client message is  BUF_SIZE
     char r[BUF_SIZE];
     memset(r, 0, BUF_SIZE);        
-    switch(recv(s_, r, BUF_SIZE, 0))
+
+    int res = recv(s_, r, BUF_SIZE, 0);
+
+    cout << "res="<<res<<" "<<SOCKET_ERROR<<" "<<WSAGetLastError()<<endl;
+    switch(res)
     {
     case 0:
-        return std::string();
     case SOCKET_ERROR:
-        throw "Recv socket error";
+        return std::string();
     }
     std::string ret(r);    
     return ret;
