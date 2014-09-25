@@ -60,11 +60,7 @@ std::string SocketTCP::Receive()
     // max leight of client message is  BUF_SIZE
     char r[BUF_SIZE];
     memset(r, 0, BUF_SIZE);        
-
-    int res = recv(s_, r, BUF_SIZE, 0);
-
-    cout << "res="<<res<<" "<<SOCKET_ERROR<<" "<<WSAGetLastError()<<endl;
-    switch(res)
+    switch(recv(s_, r, BUF_SIZE, 0))
     {
     case 0:
     case SOCKET_ERROR:
